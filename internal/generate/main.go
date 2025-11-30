@@ -3,8 +3,8 @@ package generate
 import (
 	"errors"
 
-	"github.com/spanditime/gofin/tools/gormigen/pkg/config"
-	"github.com/spanditime/gofin/tools/gormigen/pkg/utils"
+	"github.com/spanditime/gofin/tools/gormigen/internal/config"
+	"github.com/spanditime/gofin/tools/gormigen/internal/utils"
 )
 
 const (

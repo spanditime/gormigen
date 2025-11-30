@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spanditime/gofin/tools/gormigen/pkg/generate"
+	"github.com/spanditime/gofin/tools/gormigen/internal/generate"
 	"github.com/spf13/cobra"
 )
 

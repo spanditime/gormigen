@@ -55,5 +55,5 @@ var MigrationConfig = &gormigrate.Options{
 - [x] documentation
 - [ ] add a way to not apply migration and roll it back if it was applied
 - [ ] add fix-index command - to fix collisions in migration versions automatically
-- [ ] wrap running migrations and database initialization in one easy to use function
+- [x] wrap running migrations and database initialization in one easy to use function
 

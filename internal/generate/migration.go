@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"text/template"
 	"time"
 
 	_ "embed"
 
-	"github.com/spanditime/gofin/tools/gormigen/pkg/config"
-	"github.com/spanditime/gofin/tools/gormigen/pkg/utils"
+	"github.com/spanditime/gofin/tools/gormigen/internal/config"
+	"github.com/spanditime/gofin/tools/gormigen/internal/utils"
 )
 
 //go:embed migration.tmpl
@@ -82,15 +81,11 @@ func GenerateMigrationPackage(name string) error {
 }
 
 func getTodaysNumber(lastMigration utils.Migration, date string) (int, error) {
-	lastMigrationDate := lastMigration.Version[0:8]
+	lastMigrationDate := lastMigration.Date
 	if lastMigrationDate > date {
 		return 0, errors.New("last migration date is greater than current date")
 	} else if lastMigrationDate == date {
-		todaysLastNumber, err := strconv.Atoi(lastMigration.Version[8:12])
-		if err != nil {
-			return 0, errors.Join(err, errors.New("failed to convert last migration number to int"))
-		}
-		return todaysLastNumber + 1, nil
+		return lastMigration.Number + 1, nil
 	}
 	return 1, nil
 }

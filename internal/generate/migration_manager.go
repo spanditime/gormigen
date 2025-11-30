@@ -7,8 +7,8 @@ import (
 
 	_ "embed"
 
-	"github.com/spanditime/gofin/tools/gormigen/pkg/config"
-	"github.com/spanditime/gofin/tools/gormigen/pkg/utils"
+	"github.com/spanditime/gofin/tools/gormigen/internal/config"
+	"github.com/spanditime/gofin/tools/gormigen/internal/utils"
 )
 
 //go:embed migration_manager.tmpl
