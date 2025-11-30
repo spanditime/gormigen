@@ -37,7 +37,10 @@ func GenerateMigrationPackage(cfg config.MigrationsConfig, date time.Time, name 
 
 func generateMigrationFile(migration utils.Migration, dir string) error {
 	// create directory
-	os.MkdirAll(dir, 0755)
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return errors.Join(err, errors.New("failed to create migration directory"))
+	}
 	// create file
 	file, err := os.Create(fmt.Sprintf("%s/%s.go", dir, migration.Dir()))
 	if err != nil {
