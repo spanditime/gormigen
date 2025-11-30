@@ -49,5 +49,7 @@ var MigrationConfig = &gormigrate.Options{
 ## Feature plans
 - [ ] `init` command
 - [ ] usage example 
-- [ ] documentation
+- [x] documentation
+- [ ] add a way to not apply migration and roll it back if it was applied
+- [ ] add fix-index command - to fix collisions in migration versions automatically
 

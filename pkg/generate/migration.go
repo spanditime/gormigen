@@ -58,7 +58,7 @@ func GenerateMigrationPackage(name string) error {
 	// create directory
 	os.MkdirAll(folderName, 0755)
 	// create files
-	file, err := os.Create(fmt.Sprintf("%s/migration.go", folderName))
+	file, err := os.Create(fmt.Sprintf("%s/%s.go", folderName, name_snake_case))
 	if err != nil {
 		return errors.Join(err, errors.New("failed to create migration file"))
 	}
