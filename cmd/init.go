@@ -16,3 +16,7 @@ var initCmd = &cobra.Command{
 		os.Exit(1)
 	},
 }
+
+func init() {
+	rootCmd.AddCommand(initCmd)
+}

@@ -1,4 +1,4 @@
-package {{.PackageName}}
+package {{.Package}} // {{.FullName}}
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 )
 
 //-------------------------------------------------------------
-// {{.Name}}
+// {{.FullName}}
 //-------------------------------------------------------------
 
 func Up(db *gorm.DB) error {

@@ -8,12 +8,15 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
+	"time"
 )
 
 const MigrationInactiveDefaultMarker = "xXxXx"
 
 const migrationDirRegexString = `^v(\d{8})(\d{4})([Xx]*)-([a-z0-9_]+)$`
 const migrationDirPathFormat = "v%s%04d%s-%s"
+const migrationDateLayout = "20060102"
 
 var migrationDirRegex = regexp.MustCompile(migrationDirRegexString)
 
@@ -25,14 +28,36 @@ const (
 )
 
 type Migration struct {
-	Date   string
-	Number int
-	Name   string
-	Active bool
+	Datetime time.Time
+	Number   int
+	FullName string
+	Active   bool
 }
 
-func (m *Migration) Path() string {
-	return fmt.Sprintf(migrationDirPathFormat, m.Date, m.Number, m.getInactiveMarker(), m.Name)
+func (m *Migration) Date() string {
+	return m.Datetime.Format(migrationDateLayout)
+}
+func (m *Migration) SetDate(date string) error {
+	datetime, err := time.Parse(migrationDateLayout, date)
+	if err != nil {
+		return errors.Join(err, errors.New("failed to parse date"))
+	}
+	m.Datetime = datetime
+	return nil
+}
+
+func (m *Migration) Name() string {
+	name_snake_case := strings.ToLower(strings.ReplaceAll(m.FullName, " ", "_"))
+	name_snake_case = regexp.MustCompile(`[^a-z0-9\s_]`).ReplaceAllString(name_snake_case, "")
+	name_snake_case = strings.Join(strings.Fields(name_snake_case), "_")
+	if len(name_snake_case) != 0 && name_snake_case[len(name_snake_case)-1] == '_' {
+		name_snake_case = name_snake_case[:len(name_snake_case)-1]
+	}
+	return name_snake_case
+}
+
+func (m *Migration) Dir() string {
+	return fmt.Sprintf(migrationDirPathFormat, m.Date(), m.Number, m.getInactiveMarker(), m.Name())
 }
 
 func (m *Migration) getInactiveMarker() string {
@@ -47,7 +72,7 @@ func (m *Migration) Package() string {
 }
 
 func (m *Migration) Version() string {
-	return m.Date + fmt.Sprintf("%04d", m.Number)
+	return fmt.Sprintf("%s%04d", m.Date(), m.Number)
 }
 
 func ParseMigrations(path string) ([]Migration, error) {
@@ -77,12 +102,13 @@ func ParseMigrations(path string) ([]Migration, error) {
 			active = true
 			log.Printf("migration %s is marked as not active, which is currently not supported. Assuming it is active.", dir.Name())
 		}
-		migrations = append(migrations, Migration{
-			Date:   groups[migDirFDateIndex],
-			Number: number,
-			Name:   groups[migDirFNameIndex],
-			Active: active,
-		})
+		migration := Migration{
+			Number:   number,
+			FullName: groups[migDirFNameIndex],
+			Active:   active,
+		}
+		migration.SetDate(groups[migDirFDateIndex])
+		migrations = append(migrations, migration)
 	}
 	// sort migrations by version lexicographically
 	sort.Slice(migrations, func(i, j int) bool {

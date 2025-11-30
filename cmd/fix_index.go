@@ -32,3 +32,7 @@ var fixIndexCmd = &cobra.Command{
 		fmt.Println("collisions fixed successfully")
 	},
 }
+
+func init() {
+	rootCmd.AddCommand(fixIndexCmd)
+}

@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"regexp"
-	"strings"
 	"text/template"
 	"time"
 
@@ -18,74 +16,70 @@ import (
 //go:embed migration.tmpl
 var migrationTemplateFile string
 
-func GenerateMigrationPackage(name string) error {
-	cfg, err := config.GetConfig()
-	if err != nil {
-		return errors.Join(err, errors.New("failed to get config"))
-	}
-	date := time.Now().Format("20060102")
-	migrations, err := utils.ParseMigrations(cfg.Migrations.Path)
+func GenerateMigrationPackage(cfg config.MigrationsConfig, date time.Time, name string, checkNewerMigrationsExist bool) error {
+	var migration utils.Migration
+	migration.Datetime = date
+	migration.FullName = name
+
+	migrations, err := utils.ParseMigrations(cfg.Path)
 	if err != nil {
 		return errors.Join(err, errors.New("failed to parse migrations"))
 	}
 
-	// get todays number
-
-	todaysNumber := 1
-	if len(migrations) != 0 {
-		// get last migration version
-		lastMigration := migrations[len(migrations)-1]
-
-		todaysNumber, err = getTodaysNumber(lastMigration, date)
-		if err != nil {
-			return errors.Join(err, errors.New("failed to get todays migration number"))
-		}
+	if checkNewerMigrationsExist && NewerMigrationsExist(migrations, migration) {
+		return errors.New("newer migrations exist")
 	}
-
-	// format name to snake_case and leave only space and letters, and remove duplicates
-	name_snake_case := strings.ToLower(strings.ReplaceAll(name, " ", "_"))
-	name_snake_case = regexp.MustCompile(`[^a-z0-9\s_]`).ReplaceAllString(name_snake_case, "")
-	name_snake_case = strings.Join(strings.Fields(name_snake_case), "_")
-	if len(name_snake_case) != 0 && name_snake_case[len(name_snake_case)-1] == '_' {
-		name_snake_case = name_snake_case[:len(name_snake_case)-1]
-	}
+	migration.Number = getNextNumber(migrations, date)
 
 	// generate new migration version
-	version := fmt.Sprintf("v%s%04d", date, todaysNumber)
-	folderName := fmt.Sprintf("%s/%s-%s", cfg.Migrations.Path, version, name_snake_case)
+	return generateMigrationFile(migration, cfg.Path)
+}
 
+func generateMigrationFile(migration utils.Migration, dir string) error {
 	// create directory
-	os.MkdirAll(folderName, 0755)
-	// create files
-	file, err := os.Create(fmt.Sprintf("%s/%s.go", folderName, name_snake_case))
+	os.MkdirAll(dir, 0755)
+	// create file
+	file, err := os.Create(fmt.Sprintf("%s/%s.go", dir, migration.Dir()))
 	if err != nil {
 		return errors.Join(err, errors.New("failed to create migration file"))
 	}
 	defer file.Close()
-
-	// generate data for template
-	var data = struct {
-		PackageName string
-		Name        string
-	}{
-		PackageName: version,
-		Name:        name,
-	}
 	// execute template
-	err = template.Must(template.New("migration").Parse(migrationTemplateFile)).Execute(file, data)
-	if err != nil {
-		return errors.Join(err, errors.New("failed to execute template"))
-	}
-
-	return nil
+	return template.Must(template.New("migration").Parse(migrationTemplateFile)).Execute(file, migration)
 }
 
-func getTodaysNumber(lastMigration utils.Migration, date string) (int, error) {
-	lastMigrationDate := lastMigration.Date
-	if lastMigrationDate > date {
-		return 0, errors.New("last migration date is greater than current date")
-	} else if lastMigrationDate == date {
-		return lastMigration.Number + 1, nil
+func NewerMigrationsExist(migrations []utils.Migration, test utils.Migration) bool {
+	for _, migration := range migrations {
+		if migration.Datetime.After(test.Datetime) {
+			return true
+		}
 	}
-	return 1, nil
+	return false
+}
+
+func dateFromTime(date time.Time) time.Time {
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+}
+
+// set the number of the test migration to the number of the last migration + 1
+// migrations must be sorted by datetime
+func getNextNumber(migrations []utils.Migration, datetime time.Time) int {
+	if len(migrations) == 0 {
+		return 1
+	}
+	date := dateFromTime(datetime)
+	highestNumber := 0
+	for _, migration := range migrations {
+		currentDate := dateFromTime(migration.Datetime)
+		if currentDate.After(date) {
+			break
+		}
+		if currentDate.Equal(date) {
+			if migration.Number > highestNumber {
+				highestNumber = migration.Number
+			}
+			continue
+		}
+	}
+	return highestNumber + 1
 }

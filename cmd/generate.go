@@ -23,3 +23,7 @@ var generateCmd = &cobra.Command{
 		}
 	},
 }
+
+func init() {
+	rootCmd.AddCommand(generateCmd)
+}
