@@ -46,4 +46,8 @@ var MigrationConfig = &gormigrate.Options{
 	TableName: "migrations",
 }
 ```
+## Feature plans
+- [ ] `init` command
+- [ ] usage example 
+- [ ] documentation
 
