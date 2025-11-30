@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log"
 	"os"
 	"regexp"
 	"sort"
@@ -28,6 +29,7 @@ func ParseMigrations(path string) ([]Migration, error) {
 		}
 		// check if directory name is in format v{{version}}-{{name}}
 		if !regexp.MustCompile(`^v\d{12}-.+$`).MatchString(dir.Name()) {
+			log.Printf("skipping directory %s not in format v{version}-{name}\n", dir.Name())
 			continue
 		}
 		// get version and name from directory name
