@@ -15,3 +15,5 @@ gormigen [command] <options>
         generates the code based on config.yml file
 - `add <name>`  
         adds an empty migration package - that you need to implement `Up` and `down` functions
+- `fix-index [strategy:auto|inplace|push-back|dry-run]`  
+        fixes migration index collisions by renaming conflicting migrations using the chosen strategy

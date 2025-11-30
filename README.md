@@ -8,7 +8,10 @@ gormigrate [command] <options>
 __Availabe commands are:__
 - `init` - creates an example of code generation usage in a project [*WIP*]
 - `add <name>` - creates a new migration, versioned by todays date and number
-- `generate` - regenerates boilerplate based on currently existing migrations and config file
+- `generate` - regenerates boilerplate based on currently existing
+        migrations and config file
+- `fix-index [strategy]` - fix-index by renaming migration package folders [*WIP*]
+
 
 ## Getting started
 Add a tool to your project
@@ -20,7 +23,7 @@ Add a tool to your project
 ```
 gormigen init
 ```
-#### adding to existing project
+### Adding to existing project
 Create `gormigen.yml` in root of your repo, where `go.mod` located
 ```yml
 migrations:
@@ -52,4 +55,5 @@ var MigrationConfig = &gormigrate.Options{
 - [x] documentation
 - [ ] add a way to not apply migration and roll it back if it was applied
 - [ ] add fix-index command - to fix collisions in migration versions automatically
+- [ ] wrap running migrations and database initialization in one easy to use function
 
