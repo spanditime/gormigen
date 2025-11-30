@@ -28,21 +28,40 @@ const (
 )
 
 type Migration struct {
-	Datetime time.Time
+	datetime time.Time
 	Number   int
 	FullName string
 	Active   bool
 }
 
+func NewMigration(datetime time.Time, number int, fullName string) Migration {
+	return Migration{
+		datetime: DateFromTime(datetime),
+		Number:   number,
+		FullName: fullName,
+		Active:   true,
+	}
+}
+func DateFromTime(date time.Time) time.Time {
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+}
+
+func (m *Migration) Datetime() time.Time {
+	return m.datetime
+}
+func (m *Migration) SetDatetime(datetime time.Time) {
+	m.datetime = DateFromTime(datetime)
+}
+
 func (m *Migration) Date() string {
-	return m.Datetime.Format(migrationDateLayout)
+	return m.Datetime().Format(migrationDateLayout)
 }
 func (m *Migration) SetDate(date string) error {
 	datetime, err := time.Parse(migrationDateLayout, date)
 	if err != nil {
 		return errors.Join(err, errors.New("failed to parse date"))
 	}
-	m.Datetime = datetime
+	m.SetDatetime(datetime)
 	return nil
 }
 

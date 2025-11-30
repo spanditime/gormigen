@@ -17,19 +17,19 @@ import (
 var migrationTemplateFile string
 
 func GenerateMigrationPackage(cfg config.MigrationsConfig, date time.Time, name string, checkNewerMigrationsExist bool) error {
-	var migration utils.Migration
-	migration.Datetime = date
-	migration.FullName = name
+	fullName := name
 
 	migrations, err := utils.ParseMigrations(cfg.Path)
 	if err != nil {
 		return errors.Join(err, errors.New("failed to parse migrations"))
 	}
 
-	if checkNewerMigrationsExist && NewerMigrationsExist(migrations, migration) {
+	if checkNewerMigrationsExist && NewerMigrationsExist(migrations, date) {
 		return errors.New("newer migrations exist")
 	}
-	migration.Number = getNextNumber(migrations, date)
+	number := getNextNumber(migrations, date)
+
+	migration := utils.NewMigration(date, number, fullName)
 
 	// generate new migration version
 	return generateMigrationFile(migration, cfg.Path)
@@ -48,17 +48,14 @@ func generateMigrationFile(migration utils.Migration, dir string) error {
 	return template.Must(template.New("migration").Parse(migrationTemplateFile)).Execute(file, migration)
 }
 
-func NewerMigrationsExist(migrations []utils.Migration, test utils.Migration) bool {
+func NewerMigrationsExist(migrations []utils.Migration, datetime time.Time) bool {
+	date := utils.DateFromTime(datetime)
 	for _, migration := range migrations {
-		if migration.Datetime.After(test.Datetime) {
+		if migration.Datetime().After(date) {
 			return true
 		}
 	}
 	return false
-}
-
-func dateFromTime(date time.Time) time.Time {
-	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 }
 
 // set the number of the test migration to the number of the last migration + 1
@@ -67,10 +64,10 @@ func getNextNumber(migrations []utils.Migration, datetime time.Time) int {
 	if len(migrations) == 0 {
 		return 1
 	}
-	date := dateFromTime(datetime)
+	date := utils.DateFromTime(datetime)
 	highestNumber := 0
 	for _, migration := range migrations {
-		currentDate := dateFromTime(migration.Datetime)
+		currentDate := migration.Datetime()
 		if currentDate.After(date) {
 			break
 		}
