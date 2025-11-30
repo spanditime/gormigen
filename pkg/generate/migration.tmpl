@@ -1,0 +1,20 @@
+package {{.PackageName}}
+
+import (
+	"errors"
+	"gorm.io/gorm"
+)
+
+//-------------------------------------------------------------
+// {{.Name}}
+//-------------------------------------------------------------
+
+func Up(db *gorm.DB) error {
+	// write your up migration code here
+	return errors.New("not implemented")
+}
+
+func Down(db *gorm.DB) error {
+	// write your down migration code here
+	return errors.New("not implemented")
+}
